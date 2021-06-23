@@ -1,0 +1,19 @@
+{
+  "extends": ["airbnb-base", "prettier"],
+  "env": {
+    "es6": true,
+    "browser": true
+  },
+  "plugins": ["prettier"],
+  "rules": {
+    "prettier/prettier": "error",
+    "brace-style": "off",
+    "no-unused-vars": "warn",
+    "no-var": "off",
+    "one-var": "off",
+    "no-console": "off",
+    "comma-dangle": "off",
+    "no-param-reassign": "off",
+    "no-underscore-dangle": "off"
+  }
+}
