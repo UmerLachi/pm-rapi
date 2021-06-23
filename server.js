@@ -7,6 +7,11 @@ import rateLimit from 'express-rate-limit';
 import fs from 'fs';
 import path from 'path';
 
+import accountRoutes from './routes/account.js';
+import workspaceRoutes from './routes/workspace.js';
+import boardRoutes from './routes/board.js';
+import todoRoutes from './routes/todo.js';
+
 dotenv.config();
 
 const app = express();
@@ -35,6 +40,11 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 app.get('/', (req, res) => res.send('<h1>Hi there!</h1>'));
+
+app.use('/api/v1/accounts', accountRoutes);
+app.use('/api/v1/workspaces', workspaceRoutes);
+app.use('/api/v1/boards', boardRoutes);
+app.use('/api/v1/todos', todoRoutes);
 
 app.listen(PORT, () => {
   console.log(`Started server on port ${PORT}, url: http://localhost:${PORT}`);
