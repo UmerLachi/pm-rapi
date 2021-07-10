@@ -7,12 +7,16 @@ import rateLimit from 'express-rate-limit';
 import fs from 'fs';
 import path from 'path';
 
+import connectDB from './config/db.js';
 import accountRoutes from './routes/account.js';
 import workspaceRoutes from './routes/workspace.js';
 import boardRoutes from './routes/board.js';
 import todoRoutes from './routes/todo.js';
+import { notFound, handleError } from './middlewares/error.js';
 
 dotenv.config();
+
+connectDB();
 
 const app = express();
 const __dirname = path.resolve();
@@ -45,6 +49,9 @@ app.use('/api/v1/accounts', accountRoutes);
 app.use('/api/v1/workspaces', workspaceRoutes);
 app.use('/api/v1/boards', boardRoutes);
 app.use('/api/v1/todos', todoRoutes);
+
+app.use(notFound);
+app.use(handleError);
 
 app.listen(PORT, () => {
   console.log(`Started server on port ${PORT}, url: http://localhost:${PORT}`);

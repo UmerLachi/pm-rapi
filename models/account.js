@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
 
 const accountSchema = new mongoose.Schema(
   {
@@ -9,7 +10,6 @@ const accountSchema = new mongoose.Schema(
     },
     lastName: {
       type: String,
-
       required: true,
     },
     email: {
@@ -30,6 +30,19 @@ const accountSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+accountSchema.methods.matchPassword = async function (password) {
+  return await bcrypt.compare(password, this.password);
+};
+
+accountSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) {
+    next();
+  }
+
+  const salt = await bcrypt.genSalt();
+  this.password = await bcrypt.hash(this.password, salt);
+});
 
 accountSchema.set('toJSON', {
   virtuals: true,
