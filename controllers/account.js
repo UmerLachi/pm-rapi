@@ -1,6 +1,8 @@
 import Joi from 'joi';
 import asyncHandler from 'express-async-handler';
 import Account from '../models/account.js';
+import Token from '../models/token.js';
+import sendVerifyAccountEmail from '../utils/sendVerifyAccountEmail.js';
 
 const accountSchema = Joi.object({
   firstName: Joi.string().min(3).max(30).required(),
@@ -24,7 +26,7 @@ const accountSchemaForPatchRequests = Joi.object({
 export const getAccounts = asyncHandler(async (req, res) => {
   const accounts = await Account.find({}).sort('-createdAt');
 
-  res.json(accounts);
+  res.status(200).json(accounts);
 });
 
 /**
@@ -45,7 +47,12 @@ export const createAccount = asyncHandler(async (req, res) => {
 
   const account = await Account.create(values);
 
-  res.status(201).json(account);
+  await sendVerifyAccountEmail({
+    firstName: account.firstName,
+    email: account.email,
+  });
+
+  return res.status(201).json(account);
 });
 
 /**
@@ -60,7 +67,7 @@ export const getAccount = asyncHandler(async (req, res) => {
     return res.status(404).json({ message: 'Account not found' });
   }
 
-  res.json(account);
+  return res.status(200).json(account);
 });
 
 /**
@@ -85,5 +92,50 @@ export const updateAccount = asyncHandler(async (req, res) => {
     return res.status(404).json({ message: 'Account not found' });
   }
 
-  res.status(200).json(account);
+  return res.status(200).json(account);
+});
+
+/**
+ * @desc   Verify email address
+ * @route  /api/confirm-email
+ * @access Public
+ */
+export const confirmEmail = asyncHandler(async (req, res) => {
+  const { hash } = req.body;
+
+  if (!hash) {
+    return res.status(400).json({
+      message: `We were unable to verify your email.`,
+    });
+  }
+
+  const token = await Token.findOne({ token: hash });
+
+  if (!token) {
+    return res.status(400).json({
+      message: `We were unable to verify your email. (exit code 1)`,
+    });
+  }
+
+  if (token.expires < Date.now()) {
+    return res.status(400).json({
+      message: 'Link expired, please click resend email to get a new link.',
+    });
+  }
+
+  const account = await Account.findByIdAndUpdate(
+    { email: token.email },
+    { emailVerified: true },
+    { new: true }
+  );
+
+  if (!account) {
+    return res.status(400).json({
+      message: `We were unable to verify your email. (exit code 2)`,
+    });
+  }
+
+  await Token.deleteOne({ token: hash });
+
+  return res.status(200).json(account);
 });

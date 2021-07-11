@@ -15,7 +15,7 @@ const boardSchema = new mongoose.Schema(
 boardSchema.set('toJSON', {
   virtuals: true,
   versionKey: false,
-  transform: (doc, ret) => {
+  transform: (_, ret) => {
     delete ret._id;
   },
 });

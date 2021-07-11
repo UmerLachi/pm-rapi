@@ -4,6 +4,7 @@ import {
   getAccounts,
   updateAccount,
   getAccount,
+  confirmEmail,
 } from '../controllers/account.js';
 import checkObjectId from '../middlewares/checkObjectId.js';
 
@@ -21,8 +22,6 @@ router.post('/signin', (req, res) => {
   res.json(req.body);
 });
 
-router.post('/confirm-email', (req, res) => {
-  res.send('<h1>Confirm your email</h1>');
-});
+router.post('/confirm-email', confirmEmail);
 
 export default router;

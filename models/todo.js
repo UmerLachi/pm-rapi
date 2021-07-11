@@ -17,7 +17,7 @@ const todoSchema = new mongoose.Schema(
 todoSchema.set('toJSON', {
   virtuals: true,
   versionKey: false,
-  transform: (doc, ret) => {
+  transform: (_, ret) => {
     delete ret._id;
   },
 });
