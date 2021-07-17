@@ -32,7 +32,7 @@ const accountSchema = new mongoose.Schema(
 );
 
 accountSchema.methods.matchPassword = async function (password) {
-  return await bcrypt.compare(password, this.password);
+  return bcrypt.compare(password, this.password);
 };
 
 accountSchema.pre('save', async function (next) {

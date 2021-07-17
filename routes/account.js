@@ -5,22 +5,22 @@ import {
   updateAccount,
   getAccount,
   confirmEmail,
+  authenticateUser,
 } from '../controllers/account.js';
 import checkObjectId from '../middlewares/checkObjectId.js';
+import { protect } from '../middlewares/auth.js';
 
 const router = express.Router();
 
-router.route('/').get(getAccounts).post(createAccount);
+router.route('/').get(protect, getAccounts).post(createAccount);
 
 router
   .route('/:id')
-  .get(checkObjectId('id'), getAccount)
-  .put(checkObjectId('id'), updateAccount)
-  .patch(checkObjectId('id'), updateAccount);
+  .get(checkObjectId('id'), protect, getAccount)
+  .put(checkObjectId('id'), protect, updateAccount)
+  .patch(checkObjectId('id'), protect, updateAccount);
 
-router.post('/signin', (req, res) => {
-  res.json(req.body);
-});
+router.post('/signin', authenticateUser);
 
 router.post('/confirm-email', confirmEmail);
 

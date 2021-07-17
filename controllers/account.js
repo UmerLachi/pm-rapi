@@ -1,8 +1,16 @@
 import Joi from 'joi';
 import asyncHandler from 'express-async-handler';
+
 import Account from '../models/account.js';
 import Token from '../models/token.js';
 import sendVerifyAccountEmail from '../utils/sendVerifyAccountEmail.js';
+import generateToken from '../utils/generateToken.js';
+
+const loginSchema = Joi.object({
+  email: Joi.string().email().required(),
+  password: Joi.string().min(8).required(),
+  rememberMe: Joi.boolean(),
+});
 
 const accountSchema = Joi.object({
   firstName: Joi.string().min(3).max(30).required(),
@@ -19,12 +27,41 @@ const accountSchemaForPatchRequests = Joi.object({
 });
 
 /**
+ * @desc   Authenticate User
+ * @route  /api/acccounts/signin
+ * @access Public
+ */
+export const authenticateUser = asyncHandler(async (req, res) => {
+  const values = await loginSchema.validateAsync(req.body);
+
+  const { email, password, rememberMe } = values;
+
+  const account = await Account.findOne({ email });
+
+  if (account && (await account.matchPassword(password))) {
+    return res.json({
+      id: account.id,
+      firstName: account.firstName,
+      lastName: account.lastName,
+      email: account.email,
+      isAdmin: account.isAdmin,
+      emailVerified: account.emailVerified,
+      token: generateToken(account.id, rememberMe),
+    });
+  }
+
+  return res.status(400).json({ message: 'Invalid email or password' });
+});
+
+/**
  * @desc   Fetch all accounts
  * @route  /api/accounts
  * @access Private
  */
 export const getAccounts = asyncHandler(async (req, res) => {
-  const accounts = await Account.find({}).sort('-createdAt');
+  const accounts = await Account.find({})
+    .select('-password')
+    .sort('-createdAt');
 
   res.status(200).json(accounts);
 });
@@ -47,12 +84,25 @@ export const createAccount = asyncHandler(async (req, res) => {
 
   const account = await Account.create(values);
 
+  if (!account) {
+    return res
+      .status(404)
+      .json({ message: 'Something went wrong, please retry later' });
+  }
+
   await sendVerifyAccountEmail({
     firstName: account.firstName,
     email: account.email,
   });
 
-  return res.status(201).json(account);
+  return res.status(201).json({
+    id: account.id,
+    firstName: account.firstName,
+    lastName: account.lastName,
+    email: account.email,
+    isAdmin: account.isAdmin,
+    emailVerified: account.emailVerified,
+  });
 });
 
 /**
@@ -61,7 +111,7 @@ export const createAccount = asyncHandler(async (req, res) => {
  * @access Private
  */
 export const getAccount = asyncHandler(async (req, res) => {
-  const account = await Account.findById(req.params.id);
+  const account = await Account.findById(req.params.id).select('-password');
 
   if (!account) {
     return res.status(404).json({ message: 'Account not found' });
@@ -86,7 +136,7 @@ export const updateAccount = asyncHandler(async (req, res) => {
 
   const account = await Account.findByIdAndUpdate(req.params.id, values, {
     new: true,
-  });
+  }).select('-password');
 
   if (!account) {
     return res.status(404).json({ message: 'Account not found' });
@@ -127,7 +177,7 @@ export const confirmEmail = asyncHandler(async (req, res) => {
     { email: token.email },
     { emailVerified: true },
     { new: true }
-  );
+  ).select('-password');
 
   if (!account) {
     return res.status(400).json({
