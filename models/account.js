@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import bcrypt from 'bcryptjs';
+import argon2 from 'argon2';
 
 const accountSchema = new mongoose.Schema(
   {
@@ -32,7 +32,7 @@ const accountSchema = new mongoose.Schema(
 );
 
 accountSchema.methods.matchPassword = async function (password) {
-  return bcrypt.compare(password, this.password);
+  return argon2.verify(this.password, password);
 };
 
 accountSchema.pre('save', async function (next) {
@@ -40,8 +40,7 @@ accountSchema.pre('save', async function (next) {
     next();
   }
 
-  const salt = await bcrypt.genSalt();
-  this.password = await bcrypt.hash(this.password, salt);
+  this.password = await argon2.hash(this.password);
 });
 
 accountSchema.set('toJSON', {
