@@ -174,7 +174,7 @@ export const createAccount = asyncHandler(async (req, res) => {
 
   if (!account) {
     return res
-      .status(404)
+      .status(500)
       .json({ message: 'Something went wrong, please retry later' });
   }
 
@@ -206,6 +206,21 @@ export const getAccount = asyncHandler(async (req, res) => {
   }
 
   return res.status(200).json(account);
+});
+
+/**
+ * @desc   Delete an account
+ * @route  /api/accounts/:id
+ * @access Private
+ */
+export const deleteAccount = asyncHandler(async (req, res) => {
+  const account = await Account.deleteOne({ id: req.params.id });
+
+  if (!account) {
+    return res.status(404).json({ message: 'Account not found' });
+  }
+
+  return res.status(200).json({ deleted: true });
 });
 
 /**
