@@ -25,9 +25,7 @@ export const getWorkspaces = asyncHandler(async (req, res) => {
 export const createWorkspace = asyncHandler(async (req, res) => {
   const { name } = await workspaceSchema.validateAsync(req.body);
 
-  const workspace = await Workspace.create({ name, user: req.user.id }).select(
-    '-user'
-  );
+  const workspace = await Workspace.create({ name, user: req.user.id });
 
   if (!workspace) {
     return res
@@ -35,7 +33,7 @@ export const createWorkspace = asyncHandler(async (req, res) => {
       .json({ message: 'Something went wrong, please retry later' });
   }
 
-  return res.status(200).json(workspace);
+  return res.status(201).json(workspace);
 });
 
 /**
@@ -44,7 +42,7 @@ export const createWorkspace = asyncHandler(async (req, res) => {
  * @access Private
  */
 export const getWorkspace = asyncHandler(async (req, res) => {
-  const workspace = await Workspace.findById(req.params.id).select('-user');
+  const workspace = await Workspace.findById(req.params.id);
 
   if (!workspace) {
     return res.status(404).json({ message: 'Workspace not found' });
@@ -63,7 +61,7 @@ export const updateWorkspace = asyncHandler(async (req, res) => {
 
   const workspace = await Workspace.findByIdAndUpdate(req.params.id, values, {
     new: true,
-  }).select('-user');
+  });
 
   if (!workspace) {
     return res.status(404).json({ message: 'Workspace not found' });
