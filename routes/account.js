@@ -7,6 +7,7 @@ import {
   confirmEmail,
   authenticateUser,
   forgotPassword,
+  resendVerifyAccountEmail,
 } from '../controllers/account.js';
 import checkObjectId from '../middlewares/checkObjectId.js';
 import { protect } from '../middlewares/auth.js';
@@ -24,6 +25,8 @@ router
 router.post('/signin', authenticateUser);
 
 router.post('/confirm-email', confirmEmail);
+
+router.post('/resend-verify-account-email', resendVerifyAccountEmail);
 
 router.post('/forgot-password', forgotPassword);
 

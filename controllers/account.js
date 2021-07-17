@@ -78,6 +78,25 @@ export const forgotPassword = asyncHandler(async (req, res) => {
 });
 
 /**
+ * @desc   Resend Verify Account Email
+ * @route  /api/accounts/resend-verify-account-email
+ * @access Public
+ */
+export const resendVerifyAccountEmail = asyncHandler(async (req, res) => {
+  const { email } = await emailSchema.validateAsync(req.body);
+
+  const account = await Account.findOne({ email });
+
+  if (!account) {
+    return res.status(404).json({ message: 'Account not found' });
+  }
+
+  await sendVerifyAccountEmail({ email, firstName: account.firstName });
+
+  return res.status(200).json({ emailSent: true });
+});
+
+/**
  * @desc   Fetch all accounts
  * @route  /api/accounts
  * @access Private
