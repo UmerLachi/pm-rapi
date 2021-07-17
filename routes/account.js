@@ -6,6 +6,7 @@ import {
   getAccount,
   confirmEmail,
   authenticateUser,
+  forgotPassword,
 } from '../controllers/account.js';
 import checkObjectId from '../middlewares/checkObjectId.js';
 import { protect } from '../middlewares/auth.js';
@@ -23,5 +24,7 @@ router
 router.post('/signin', authenticateUser);
 
 router.post('/confirm-email', confirmEmail);
+
+router.post('/forgot-password', forgotPassword);
 
 export default router;

@@ -4,12 +4,17 @@ import asyncHandler from 'express-async-handler';
 import Account from '../models/account.js';
 import Token from '../models/token.js';
 import sendVerifyAccountEmail from '../utils/sendVerifyAccountEmail.js';
+import sendResetPasswordEmail from '../utils/sendResetPasswordEmail.js';
 import generateToken from '../utils/generateToken.js';
 
 const loginSchema = Joi.object({
   email: Joi.string().email().required(),
   password: Joi.string().min(8).required(),
   rememberMe: Joi.boolean(),
+});
+
+const emailSchema = Joi.object({
+  email: Joi.string().email().required(),
 });
 
 const accountSchema = Joi.object({
@@ -51,6 +56,25 @@ export const authenticateUser = asyncHandler(async (req, res) => {
   }
 
   return res.status(400).json({ message: 'Invalid email or password' });
+});
+
+/**
+ * @desc   Send Reset Password Link
+ * @route  /api/accounts/forgot-password
+ * @access Public
+ */
+export const forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = await emailSchema.validateAsync(req.body);
+
+  const account = await Account.findOne({ email });
+
+  if (!account) {
+    return res.status(404).json({ message: 'Account not found' });
+  }
+
+  await sendResetPasswordEmail({ email, firstName: account.firstName });
+
+  return res.status(200).json({ emailSent: true });
 });
 
 /**
