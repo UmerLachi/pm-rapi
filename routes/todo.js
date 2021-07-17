@@ -1,24 +1,21 @@
 import express from 'express';
 import checkObjectId from '../middlewares/checkObjectId.js';
+import {
+  getTodos,
+  createTodo,
+  getTodo,
+  updateTodo,
+  deleteTodo,
+} from '../controllers/todo.js';
 
 const router = express.Router();
 
-router
-  .route('/')
-  .get((req, res) => {
-    res.json([]);
-  })
-  .post((req, res) => {
-    res.json(req.body);
-  });
+router.route('/').get(getTodos).post(createTodo);
 
 router
   .route('/:id')
-  .get(checkObjectId('id'), (req, res) => {
-    res.json({ name: 'todo name' });
-  })
-  .put(checkObjectId('id'), (req, res) => {
-    res.json(req.body);
-  });
+  .get(checkObjectId('id'), getTodo)
+  .put(checkObjectId('id'), updateTodo)
+  .delete(checkObjectId('id'), deleteTodo);
 
 export default router;

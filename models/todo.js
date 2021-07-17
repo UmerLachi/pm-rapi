@@ -8,7 +8,7 @@ const todoSchema = new mongoose.Schema(
       ref: 'Board',
     },
     name: { type: String, required: true },
-    order: { type: Number, required: true },
+    position: { type: Number, required: true },
     description: String,
   },
   { timestamps: true }
