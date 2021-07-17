@@ -78,6 +78,51 @@ export const forgotPassword = asyncHandler(async (req, res) => {
 });
 
 /**
+ * @desc   Reset User Password
+ * @route  /api/accounts/reset-password
+ * @access Public
+ */
+export const resetPassword = asyncHandler(async (req, res) => {
+  const { hash, password } = req.body;
+
+  if (!hash) {
+    return res.status(400).json({
+      message: `We were unable to reset your password.`,
+    });
+  }
+
+  const token = await Token.findOne({ token: hash });
+
+  if (!token) {
+    return res.status(400).json({
+      message: `We were unable to reset your password. (exit code 1)`,
+    });
+  }
+
+  if (token.expires < Date.now()) {
+    return res.status(400).json({
+      message: 'Link expired, please try again.',
+    });
+  }
+
+  const account = await Account.findByIdAndUpdate(
+    { email: token.email },
+    { password },
+    { new: true }
+  ).select('-password');
+
+  if (!account) {
+    return res.status(400).json({
+      message: `We were unable to reset your password. (exit code 2)`,
+    });
+  }
+
+  await Token.deleteOne({ token: hash });
+
+  return res.status(200).json(account);
+});
+
+/**
  * @desc   Resend Verify Account Email
  * @route  /api/accounts/resend-verify-account-email
  * @access Public
